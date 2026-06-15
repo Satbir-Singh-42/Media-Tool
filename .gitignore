@@ -1,0 +1,52 @@
+# ── Python ──────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+
+# Virtual environments
+venv/
+env/
+.venv/
+ENV/
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# ── FFmpeg WASM Binary (large file — re-download on setup) ───
+# Run: python download_ffmpeg.py  to restore
+static/js/ffmpeg/ffmpeg-core.wasm
+
+# ── OS Files ─────────────────────────────────────────────────
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# ── Editor / IDE ─────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+*.sublime-project
+*.sublime-workspace
+
+# ── Logs & Temp ──────────────────────────────────────────────
+*.log
+*.tmp
+*.temp
+flask_session/
+instance/
+
+# ── Build / Dist ─────────────────────────────────────────────
+dist/
+build/
+*.egg-info/
