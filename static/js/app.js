@@ -41,6 +41,17 @@
   let ffmpeg = null;
   let startTime = 0;
 
+  /* ── Upload Limit ───────────────────────────────────────── */
+  const MAX_FILE_SIZE = 2 * 1024 * 1024 * 1024; // 2 GB in bytes
+
+  function checkFileSize(file) {
+    if (file.size > MAX_FILE_SIZE) {
+      const sizeMB = (file.size / 1024 / 1024).toFixed(0);
+      return `File is ${sizeMB} MB — exceeds the 2 GB limit. Please use a smaller file.`;
+    }
+    return null;
+  }
+
   async function loadFFmpeg() {
     if (ffmpeg === null) {
       ffmpeg = new FFmpeg();
@@ -187,8 +198,17 @@
 
   fileVideo.addEventListener("change", e => {
     if (e.target.files.length > 0) {
-      videoFileObj = e.target.files[0];
+      const file = e.target.files[0];
+      const err = checkFileSize(file);
+      if (err) {
+        fileVideo.value = "";
+        videoFileObj = null;
+        renderFileList([], "list-video2mp3");
+        return setStatus("error", err);
+      }
+      videoFileObj = file;
       renderFileList([videoFileObj], "list-video2mp3");
+      setStatus("ready", "File ready — click Extract Audio (MP3)");
     }
   });
 
@@ -200,6 +220,8 @@
 
   btnVideoAction.addEventListener("click", async () => {
     if (!videoFileObj) return setStatus("error", "Please select a video file");
+    const sizeErr = checkFileSize(videoFileObj);
+    if (sizeErr) return setStatus("error", sizeErr);
 
     setStatus("loading", "Extracting audio...");
     showLoader("Initializing...", true);
@@ -256,8 +278,17 @@
 
   fileCompressVideo.addEventListener("change", e => {
     if (e.target.files.length > 0) {
-      compressVideoFileObj = e.target.files[0];
+      const file = e.target.files[0];
+      const err = checkFileSize(file);
+      if (err) {
+        fileCompressVideo.value = "";
+        compressVideoFileObj = null;
+        renderFileList([], "list-compress-video");
+        return setStatus("error", err);
+      }
+      compressVideoFileObj = file;
       renderFileList([compressVideoFileObj], "list-compress-video");
+      setStatus("ready", "File ready — click Compress & Download");
     }
   });
 
@@ -269,6 +300,8 @@
 
   btnCompressVideoAction.addEventListener("click", async () => {
     if (!compressVideoFileObj) return setStatus("error", "Please select a video to compress");
+    const sizeErr = checkFileSize(compressVideoFileObj);
+    if (sizeErr) return setStatus("error", sizeErr);
 
     setStatus("loading", "Compressing video...");
     showLoader("Initializing...", true);
