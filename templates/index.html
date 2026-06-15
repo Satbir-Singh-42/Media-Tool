@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- ── Primary SEO ──────────────────────────────────────── -->
+  <title>Media Tools PRO — Video to MP3 & Video Compressor</title>
+  <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+  <meta name="description"
+    content="Free online media toolkit. Convert videos to MP3 audio instantly, or compress large video files without quality loss. No sign-up required." />
+  <meta name="keywords"
+    content="Media tools, video to mp3, mp4 to mp3, video compressor, compress mp4, online video converter, free media tools" />
+  <meta name="author" content="Media Tools PRO" />
+  <meta name="robots" content="index, follow" />
+  <meta name="theme-color" content="#6366f1" />
+
+  <!-- ── Open Graph ───────────────────────────────────────── -->
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Media Tools PRO — Video to MP3 & Video Compressor" />
+  <meta property="og:description"
+    content="Extract audio from video and compress massive videos instantly online. Free, secure, and no sign-up required." />
+  <meta property="og:site_name" content="Media Tools PRO" />
+
+  <!-- ── JSON-LD Structured Data ──────────────────────────── -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "Media Tools PRO",
+    "description": "Free online media tools including video to audio conversion and high-performance video compression.",
+    "applicationCategory": "UtilitiesApplication",
+    "operatingSystem": "Web Browser",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD"
+    },
+    "featureList": [
+      "Convert Video to MP3",
+      "Compress Video",
+      "No sign-up required"
+    ]
+  }
+  </script>
+
+  <!-- ── Fonts ─────────────────────────────────────────────── -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/css/style.css" />
+  <style>
+    /* Additional Styles */
+    .upload-zone {
+      border: 2px dashed var(--border);
+      border-radius: var(--radius);
+      padding: 30px;
+      text-align: center;
+      transition: all var(--transition);
+      background: var(--surface2);
+      cursor: pointer;
+    }
+
+    .upload-zone:hover {
+      border-color: var(--accent);
+      background: rgba(99, 102, 241, 0.05);
+    }
+
+    .file-list {
+      margin-top: 15px;
+      font-size: 13px;
+      color: var(--text-2);
+      text-align: left;
+      max-height: 150px;
+      overflow-y: auto;
+    }
+
+    .file-item {
+      padding: 6px 10px;
+      background: var(--surface);
+      border-radius: 6px;
+      margin-bottom: 5px;
+      display: flex;
+      justify-content: space-between;
+      border: 1px solid var(--border);
+    }
+
+    .custom-input {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 8px 12px;
+      border-radius: 8px;
+      outline: none;
+      font-family: inherit;
+      transition: border-color var(--transition);
+      width: 120px;
+    }
+
+    .custom-input:focus {
+      border-color: var(--accent);
+    }
+
+    .tool-view {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+    }
+
+    .tool-view:not(.active) {
+      display: none;
+    }
+
+    .text-section {
+      padding: 22px 24px 14px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+
+    .upload-icon {
+      margin-bottom: 15px;
+      color: var(--accent);
+    }
+
+    .upload-title {
+      font-weight: 500;
+      margin-bottom: 5px;
+    }
+
+    .upload-sub {
+      font-size: 12px;
+      color: var(--text-3);
+    }
+
+    .tool-hint {
+      font-size: 12px;
+      color: var(--text-3);
+      margin: 0 24px 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+  </style>
+
+  <!-- FFmpeg.wasm (served locally to avoid cross-origin Worker issues) -->
+  <script src="/static/js/ffmpeg/ffmpeg.js"></script>
+  <script src="/static/js/ffmpeg/ffmpeg-core.js"></script>
+  <script src="/static/js/ffmpeg/ffmpeg-util.js"></script>
+</head>
+
+<body>
+
+  <div class="bg-blob blob-1"></div>
+  <div class="bg-blob blob-2"></div>
+  <div class="bg-blob blob-3"></div>
+
+  <div class="app-shell">
+
+    <!-- ── Sidebar ─────────────────────────────────────────── -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="logo">
+          <div class="logo-icon-wrap">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="5 3 19 12 5 21 5 3" />
+            </svg>
+          </div>
+          <div>
+            <h1 class="logo-title">Media Tools PRO</h1>
+            <div class="logo-sub">Studio</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="sidebar-section-label">Tools</div>
+
+      <ul class="lang-list" id="toolList">
+        <!-- Video to MP3 -->
+        <li class="lang-item active" data-id="video2mp3" data-name="Video to MP3">
+          <span class="tool-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M9 18V5l12-2v13" />
+              <circle cx="6" cy="18" r="3" />
+              <circle cx="18" cy="16" r="3" />
+            </svg>
+          </span>
+          Video to MP3
+        </li>
+
+        <!-- Compress Video -->
+        <li class="lang-item" data-id="compress-video" data-name="Compress Video">
+          <span class="tool-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="3" width="18" height="18" rx="2" />
+              <circle cx="8.5" cy="8.5" r="1.5" />
+              <polyline points="21 15 16 10 5 21" />
+            </svg>
+          </span>
+          Compress Video
+        </li>
+      </ul>
+
+      <div class="sidebar-footer">
+        <div class="sidebar-footer-tip">
+          <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10" />
+            <line x1="12" y1="8" x2="12" y2="12" />
+            <line x1="12" y1="16" x2="12.01" y2="16" />
+          </svg>
+          Files are processed locally &amp; never uploaded to a server!
+        </div>
+      </div>
+    </aside>
+
+    <!-- ── Main ───────────────────────────────────────────── -->
+    <main class="main-content">
+
+      <!-- Topbar -->
+      <header class="topbar">
+        <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="3" y1="6" x2="21" y2="6" />
+            <line x1="3" y1="12" x2="21" y2="12" />
+            <line x1="3" y1="18" x2="21" y2="18" />
+          </svg>
+        </button>
+
+        <div class="topbar-center">
+          <span id="selectedToolBadge" class="lang-badge">Video to MP3</span>
+        </div>
+
+        <div class="topbar-right">
+          <button class="btn-donate" id="donateBtn" title="Support the developer">
+            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path
+                d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z">
+              </path>
+            </svg>
+            Support
+          </button>
+          <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme" title="Toggle light / dark">
+            <svg id="iconMoon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+            </svg>
+            <svg id="iconSun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+              style="display:none">
+              <circle cx="12" cy="12" r="5" />
+              <line x1="12" y1="1" x2="12" y2="3" />
+              <line x1="12" y1="21" x2="12" y2="23" />
+              <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+              <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+              <line x1="1" y1="12" x2="3" y2="12" />
+              <line x1="21" y1="12" x2="23" y2="12" />
+              <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+              <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+            </svg>
+          </button>
+        </div>
+      </header>
+
+      <!-- Card -->
+      <div class="card" id="toolViews">
+
+        <!-- ── Video to MP3 View ─────────────────────────────── -->
+        <div class="tool-view active" id="view-video2mp3">
+          <section class="text-section">
+            <label class="section-label">Upload Video to Extract Audio</label>
+            <div class="upload-zone" id="drop-video2mp3" onclick="document.getElementById('file-video2mp3').click()">
+              <input type="file" id="file-video2mp3" accept="video/*" style="display:none;" />
+              <div class="upload-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <polygon points="23 7 16 12 23 17 23 7" />
+                  <rect x="1" y="5" width="15" height="14" rx="2" ry="2" />
+                </svg>
+              </div>
+              <div class="upload-title">Click or drag a video here</div>
+              <div class="upload-sub">MP4, MKV, AVI. Max 2GB (Browser limit)</div>
+              <div class="file-list" id="list-video2mp3" onclick="event.stopPropagation();"></div>
+            </div>
+          </section>
+          <section class="actions-section">
+            <button class="btn btn-speak" id="btn-video2mp3-action">
+              <svg class="btn-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9 18V5l12-2v13" />
+                <circle cx="6" cy="18" r="3" />
+                <circle cx="18" cy="16" r="3" />
+              </svg>
+              Extract Audio (MP3)
+            </button>
+            <button class="btn btn-clear" id="btn-video2mp3-clear">
+              <svg class="btn-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="3 6 5 6 21 6" />
+                <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                <path d="M10 11v6" />
+                <path d="M14 11v6" />
+                <path d="M9 6V4h6v2" />
+              </svg>
+              Clear
+            </button>
+          </section>
+        </div>
+
+        <!-- ── Compress Video View ────────────────────────────── -->
+        <div class="tool-view" id="view-compress-video">
+          <section class="text-section">
+            <label class="section-label">Upload Video to Compress</label>
+            <div class="upload-zone" id="drop-compress-video"
+              onclick="document.getElementById('file-compress-video').click()">
+              <input type="file" id="file-compress-video" accept="video/*" style="display:none;" />
+              <div class="upload-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="3" width="18" height="18" rx="2" />
+                  <circle cx="8.5" cy="8.5" r="1.5" />
+                  <polyline points="21 15 16 10 5 21" />
+                </svg>
+              </div>
+              <div class="upload-title">Click or drag a video here</div>
+              <div class="upload-sub">Compress MP4, MKV, AVI. Max 2GB</div>
+              <div class="file-list" id="list-compress-video" onclick="event.stopPropagation();"></div>
+            </div>
+          </section>
+          <section class="controls-section">
+            <div class="control-group" style="width: 100%; max-width: 400px;">
+              <div class="control-label">Compression Quality</div>
+              <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 8px;">
+                <input type="range" id="compress-quality" min="10" max="90" value="60"
+                  style="flex: 1; cursor: pointer;" />
+                <span id="quality-val"
+                  style="font-size: 14px; font-weight: 500; color: var(--text); min-width: 40px;">60%</span>
+              </div>
+              <div
+                style="display: flex; justify-content: space-between; font-size: 11px; color: var(--text-3); font-weight: 500;">
+                <span>Smaller File<br>(Lower Quality)</span>
+                <span style="text-align: right;">Larger File<br>(Better Quality)</span>
+              </div>
+            </div>
+          </section>
+          <section class="actions-section">
+            <button class="btn btn-speak" id="btn-compress-video-action">
+              <svg class="btn-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="7 10 12 15 17 10" />
+                <line x1="12" y1="15" x2="12" y2="3" />
+              </svg>
+              Compress &amp; Download
+            </button>
+            <button class="btn btn-clear" id="btn-compress-video-clear">
+              <svg class="btn-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="3 6 5 6 21 6" />
+                <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                <path d="M10 11v6" />
+                <path d="M14 11v6" />
+                <path d="M9 6V4h6v2" />
+              </svg>
+              Clear
+            </button>
+          </section>
+        </div>
+
+        <!-- Status bar -->
+        <div class="status-bar">
+          <div class="status-dot ready" id="statusDot"></div>
+          <span id="statusText">Ready — select a tool and upload a file</span>
+        </div>
+
+        <!-- Loader overlay -->
+        <div class="loader-overlay" id="loaderOverlay">
+          <div class="spinner" id="loaderSpinner"></div>
+
+          <div class="progress-container" id="progressContainer"
+            style="display:none; width:80%; max-width:400px; margin-top:20px; flex-direction:column; align-items:center;">
+            <div
+              style="background:var(--surface2); border-radius:10px; overflow:hidden; height:12px; width:100%; border:1px solid var(--border);">
+              <div id="progressFill"
+                style="background:var(--accent); width:0%; height:100%; transition:width 0.3s ease;"></div>
+            </div>
+            <div
+              style="display:flex; justify-content:space-between; width:100%; margin-top:8px; font-size:12px; color:var(--text-2);">
+              <span id="progressPercent">0%</span>
+              <span id="progressEta">0s remaining</span>
+            </div>
+          </div>
+
+          <div class="loader-text" id="loaderText" style="margin-top:15px;">Processing…</div>
+        </div>
+
+      </div><!-- /card -->
+
+      <!-- Footer -->
+      <footer class="app-footer">
+        <a href="/privacy" target="_blank">Privacy Policy</a> &bull;
+        <a href="/terms" target="_blank">Terms of Service</a>
+      </footer>
+
+    </main>
+
+    <!-- ── Support Modal ──────────────────────────────────── -->
+    <div class="modal-overlay" id="donateModal">
+      <div class="modal-content">
+        <button class="modal-close" id="donateClose" aria-label="Close">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+
+        <h3 class="modal-title">Support Media Tools PRO</h3>
+        <p class="modal-desc">If this free tool saved you time or money, consider leaving a small tip! Your support
+          keeps the servers running and new features coming.</p>
+        <div class="qr-container">
+          <img
+            src="https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=upi%3A%2F%2Fpay%3Fpa%3D9872626522%40kotakbank%26pn%3DSATBIR%20SINGH"
+            alt="Satbir Singh UPI QR Code" id="upiQrImage" loading="lazy" />
+        </div>
+        <p class="upi-id-text" style="margin-bottom: 4px;">SATBIR SINGH</p>
+        <p class="upi-id-text" style="font-weight: 500; font-size: 12px;">UPI ID: 9872626522@kotakbank</p>
+      </div>
+    </div>
+
+  </div><!-- /app-shell -->
+
+  <script src="/static/js/app.js"></script>
+</body>
+
+</html>
