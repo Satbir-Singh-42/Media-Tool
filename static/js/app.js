@@ -235,7 +235,11 @@
       loaderText.textContent = "Extracting Audio (MP3)...";
       startTime = Date.now();
       
-      await ffmpeg.exec(['-i', 'input.mp4', '-vn', '-ar', '44100', '-ac', '2', '-b:a', '192k', 'output.mp3']);
+      try {
+        await ffmpeg.exec(['-i', 'input.mp4', '-vn', '-ar', '44100', '-ac', '2', '-b:a', '192k', 'output.mp3']);
+      } catch (execErr) {
+        if (execErr.message && !execErr.message.includes('Aborted')) throw execErr;
+      }
       
       loaderText.textContent = "Finalizing download...";
       const data = await ffmpeg.readFile('output.mp3');
@@ -319,7 +323,11 @@
       const quality = parseInt(compressQuality.value, 10);
       const crfVal = Math.round(40 - ((quality - 10) * 18 / 80));
       
-      await ffmpeg.exec(['-i', 'input.mp4', '-vcodec', 'libx264', '-crf', crfVal.toString(), '-preset', 'fast', 'output.mp4']);
+      try {
+        await ffmpeg.exec(['-i', 'input.mp4', '-vcodec', 'libx264', '-crf', crfVal.toString(), '-preset', 'fast', 'output.mp4']);
+      } catch (execErr) {
+        if (execErr.message && !execErr.message.includes('Aborted')) throw execErr;
+      }
       
       loaderText.textContent = "Finalizing download...";
       const data = await ffmpeg.readFile('output.mp4');
